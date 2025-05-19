@@ -1,0 +1,153 @@
+<!-- assistant/templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Assistant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef6fc;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      padding: 2rem;
+      margin: 0;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      max-width: 700px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+    }
+    h1 {
+      text-align: center;
+      margin: 1rem 0;
+      color: #0366d6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1rem;
+    }
+    .reset-btn {
+      background: #e3342f;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .reset-btn:hover {
+      background: #cc1f1a;
+    }
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      background: #f7fbff;
+    }
+    .chat-item {
+      margin-bottom: 1rem;
+    }
+    .chat-user {
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+      color: #333333;
+    }
+    .chat-bot {
+      background: #ffffff;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #e1eaff;
+      white-space: pre-wrap;
+    }
+    .input-area {
+      border-top: 1px solid #e1eaff;
+      padding: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    #query {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button.send-btn {
+      background: #0366d6;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button.send-btn:hover {
+      background: #024fa1;
+    }
+    .loading {
+      opacity: 0.6;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>
+      <span>AI Assistant</span>
+      <form id="reset-form" method="post" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" name="reset" value="1" class="reset-btn">Reset Chat</button>
+      </form>
+    </h1>
+
+    <div class="chat-history" id="chat-history">
+      {% for turn in history %}
+        <div class="chat-item">
+          <div class="chat-user">You: {{ turn.question }}</div>
+          <div class="chat-bot" data-md-inline>{{ turn.answer|escape }}</div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <form id="ask-form" method="post" class="input-area">
+      {% csrf_token %}
+      <input type="text" id="query" name="query" placeholder="Type your question…" required autofocus>
+      <button type="submit" class="send-btn">Send</button>
+    </form>
+  </div>
+
+  <!-- Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    function renderMarkdown() {
+      document.querySelectorAll('.chat-bot[data-md-inline]').forEach(div => {
+        const raw = div.textContent;
+        div.innerHTML = marked.parse(raw);
+      });
+    }
+
+    renderMarkdown();
+
+    const form = document.getElementById('ask-form');
+    form.addEventListener('submit', () => {
+      const historyDiv = document.getElementById('chat-history');
+      const userText = document.getElementById('query').value;
+      const item = document.createElement('div');
+      item.className = 'chat-item';
+      item.innerHTML = `
+        <div class="chat-user">You: ${userText}</div>
+        <div class="chat-bot loading">…loading</div>
+      `;
+      historyDiv.appendChild(item);
+      historyDiv.scrollTop = historyDiv.scrollHeight;
+    });
+  </script>
+</body>
+</html>
